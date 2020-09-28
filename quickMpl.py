@@ -206,8 +206,6 @@ def make_anglemap( N = 256, use_hpl = True ):
     return col.ListedColormap( colorlist )
 
 
-
-
 def complex_array_to_hsv(cpx_array, theme='dark', rmax=None):
     '''Takes an array of complex numbers cpx_array and converts it to an array of [r, g, b],
     where phase gives hue and saturaton/value are given by the absolute value.
@@ -231,3 +229,59 @@ def imshow_hsv(cpx_array,theme = 'dark',rmax = 'None'):
     fig = plt.figure()
     plt.imshow(complex_array_to_hsv(cpx_array))
     return fig
+
+
+
+def img_nav(img_stack, cmap = 'hot', **kwargs):
+    '''
+    A class used to conveniently navigate through a stack of images img_stack with the keyboard arrows.
+    '''
+    class ChangeFig:
+        def __init__(self,n,img,img_stack, **kwargs):
+            self.curr_pos = 0
+            self.img_stack = img_stack
+            self.length= n
+            self.img = img
+            self.cid = img.figure.canvas.mpl_connect('key_press_event',self)
+            if 'img_names' in kwargs and len(kwargs['img_names']) == len(img_stack):
+                self.custom_names = True
+                self.img_names = kwargs['img_names']
+            else:
+                self.custom_names = False
+
+
+        def __call__(self,event):
+            
+            if event.key == "right":
+                self.curr_pos = self.curr_pos + 1
+            elif event.key == "left":
+                self.curr_pos = self.curr_pos - 1
+            elif event.key == "up":
+                self.curr_pos = self.curr_pos + 100    
+            elif event.key == "down":
+                self.curr_pos = self.curr_pos - 100
+            self.curr_pos = self.curr_pos % self.length
+
+            self.img.set_data(self.img_stack[self.curr_pos])
+            if self.custom_names:
+                self.img.axes.set_title(f'{self.img_names[self.curr_pos]}')
+            else:
+                self.img.axes.set_title("Image number : %d" % self.curr_pos)
+
+            self.img.figure.canvas.draw()
+
+    if 'img_names' in kwargs and len(kwargs['img_names']) == len(img_stack):
+        custom_names = True
+    else:
+        custom_names = False
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    img = ax.imshow(img_stack[0],vmin = np.min(img_stack), vmax = np.max(img_stack),cmap = cmap)
+    if custom_names:
+        ax.set_title(f"{kwargs['img_names'][0]}")
+    else:
+        ax.set_title("Image number : 0")
+    
+    
+    change_fig = ChangeFig(len(img_stack),img,img_stack, **kwargs)
+    plt.show()
