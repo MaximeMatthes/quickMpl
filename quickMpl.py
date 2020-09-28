@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-
+import hsluv
+import matplotlib.colors as col
 ##
 
 class imshow_multiple():
@@ -178,3 +179,55 @@ class subplots_arrangement():
                 self.ax[i].set_ylim(min_val,max_val) 
             elif self.type == 'imshow':
                 self.ax[i].imshow(element,vmin = min_val,vmax = max_val,cmap = self.cmap)
+
+
+
+
+def make_anglemap( N = 256, use_hpl = True ):
+    '''
+    Allows to create a nice cyclic colormap, useful to display phase for example
+    '''
+
+    h = np.ones(N) # hue
+    h[:N//2] = 11.6 # red 
+    h[N//2:] = 258.6 # blue
+    s = 100 # saturation
+    l = np.linspace(0, 100, N//2) # luminosity
+    l = np.hstack( (l,l[::-1] ) )
+
+    colorlist = np.zeros((N,3))
+    for ii in range(N):
+        if use_hpl:
+            colorlist[ii,:] = hsluv.hpluv_to_rgb( (h[ii], s, l[ii]) )
+        else:
+            colorlist[ii,:] = hsluv.hsluv_to_rgb( (h[ii], s, l[ii]) )
+    colorlist[colorlist > 1] = 1 # correct numeric errors
+    colorlist[colorlist < 0] = 0 
+    return col.ListedColormap( colorlist )
+
+
+
+
+def complex_array_to_hsv(cpx_array, theme='dark', rmax=None):
+    '''Takes an array of complex numbers cpx_array and converts it to an array of [r, g, b],
+    where phase gives hue and saturaton/value are given by the absolute value.
+    Especially for use with imshow for complex plots.'''
+    absmax = rmax or np.abs(cpx_array).max()
+    Y = np.zeros(cpx_array.shape + (3,), dtype='float')
+    Y[..., 0] = np.angle(cpx_array) / (2 * np.pi) % 1
+    if theme == 'light':
+        Y[..., 1] = np.clip(np.abs(cpx_array) / absmax, 0, 1)
+        Y[..., 2] = 1
+    elif theme == 'dark':
+        Y[..., 1] = 1
+        Y[..., 2] = np.clip(np.abs(cpx_array) / absmax, 0, 1)
+    Y = matplotlib.colors.hsv_to_rgb(Y)
+    return Y
+
+def imshow_hsv(cpx_array,theme = 'dark',rmax = 'None'):
+    '''
+    Displays a cpx_array in hsv thanks to complex_array_to_hsv function
+    '''
+    fig = plt.figure()
+    plt.imshow(complex_array_to_rgb(cpx_array))
+    return fig
