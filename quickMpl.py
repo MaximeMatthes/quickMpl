@@ -229,5 +229,5 @@ def imshow_hsv(cpx_array,theme = 'dark',rmax = 'None'):
     Displays a cpx_array in hsv thanks to complex_array_to_hsv function
     '''
     fig = plt.figure()
-    plt.imshow(complex_array_to_rgb(cpx_array))
+    plt.imshow(complex_array_to_hsv(cpx_array))
     return fig
