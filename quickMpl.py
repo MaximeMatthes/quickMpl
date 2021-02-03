@@ -342,6 +342,12 @@ def plot_nav(plot_stack, color = 'r', **kwargs):
     fig = plt.figure()
     ax = fig.add_subplot(111)
     curr_plot = ax.plot(plot_stack[0], color = color)
+    if 'xaxis' in kwargs:
+        ax.set_xlim(kwargs['xaxis'][0], kwargs['xaxis'][1])
+    if 'yaxis' in kwargs:
+        ax.set_ylim(kwargs['yaxis'][0], kwargs['yaxis'][1])
+    else:
+        ax.set_ylim(np.min(plot_stack.ravel()), np.max(plot_stack.ravel()))
     if custom_names:
         ax.set_title(f"{kwargs['plot_names'][0]}")
     else:
