@@ -285,3 +285,71 @@ def img_nav(img_stack, cmap = 'hot', **kwargs):
     
     change_fig = ChangeFig(len(img_stack),img,img_stack, **kwargs)
     plt.show()
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+def plot_nav(plot_stack, color = 'r', **kwargs):
+    '''
+    A class used to conveniently navigate through a stack of images img_stack with the keyboard arrows.
+    '''
+    class ChangeFig:
+        def __init__(self,n,curr_plot,plot_stack, **kwargs):
+            self.curr_pos = 0
+            self.plot_stack = plot_stack
+            self.length= n
+            self.curr_plot = curr_plot
+            self.cid = curr_plot[0].figure.canvas.mpl_connect('key_press_event',self)
+            if 'img_names' in kwargs and len(kwargs['plot_names']) == len(plot_stack):
+                self.custom_names = True
+                self.plot_names = kwargs['plot_names']
+            else:
+                self.custom_names = False
+
+
+        def __call__(self,event):
+            
+            if event.key == "right":
+                self.curr_pos = self.curr_pos + 1
+            elif event.key == "left":
+                self.curr_pos = self.curr_pos - 1
+            elif event.key == "up":
+                self.curr_pos = self.curr_pos + 100    
+            elif event.key == "down":
+                self.curr_pos = self.curr_pos - 100
+            self.curr_pos = self.curr_pos % self.length
+
+            self.curr_plot[0].set_data(np.arange(len(self.plot_stack[self.curr_pos])),self.plot_stack[self.curr_pos])
+            if self.custom_names:
+                self.curr_plot[0].axes.set_title(f'{self.plot_names[self.curr_pos]}')
+            else:
+                self.curr_plot[0].axes.set_title("Image number : %d" % self.curr_pos)
+
+            self.curr_plot[0].figure.canvas.draw()
+
+    if 'img_names' in kwargs and len(kwargs['plot_names']) == len(plot_stack):
+        custom_names = True
+    else:
+        custom_names = False
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    curr_plot = ax.plot(plot_stack[0], color = color)
+    if custom_names:
+        ax.set_title(f"{kwargs['plot_names'][0]}")
+    else:
+        ax.set_title("Plot number : 0")
+    
+    
+    change_fig = ChangeFig(len(plot_stack),curr_plot,plot_stack, **kwargs)
+    plt.show()
+    
+    
+    
